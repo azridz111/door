@@ -1,5 +1,6 @@
 import requests
 import telebot
+import base64
 
 
 BOT_TOKEN = '7255568673:AAGyTRIQD4tlmljjCYp-AgTUWlsEX9kqC1w'
