@@ -1,12 +1,8 @@
 import requests
 import telebot
 import base64
-url = 'https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token'
-proxies = {
-  "http":'41.111.243.134:80'
-}
-response = requests.get(url,proxies=proxies)
-print(response.json())
+
+
 
 BOT_TOKEN = '7255568673:AAGyTRIQD4tlmljjCYp-AgTUWlsEX9kqC1w'
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -15,6 +11,11 @@ user_data_dict = {}
 
 def check_balance(access_token):
     url = "https://ibiza.ooredoo.dz/api/v1/mobile-bff/users/balance"
+  proxies = {
+  "http":'41.111.243.133:80'
+}
+response = requests.get(url,proxies=proxies)
+print(response.json())
     headers = {
         'Authorization': f'Bearer {access_token}',
         'User-Agent': "okhttp/4.9.3",
@@ -38,6 +39,11 @@ def check_balance(access_token):
 
 def send_internet(access_token):
     url = 'https://ibiza.ooredoo.dz/api/v1/mobile-bff/users/mgm/info/apply'
+  proxies = {
+  "http":'41.111.243.133:80'
+}
+response = requests.get(url,proxies=proxies)
+print(response.json())
     headers = {
         'Authorization': f'Bearer {access_token}',
         'language': 'AR',
