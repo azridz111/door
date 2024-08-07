@@ -1,7 +1,12 @@
 import requests
 import telebot
 import base64
-
+url = 'https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token'
+proxies = {
+  "http":'41.111.243.134:80'
+}
+response = requests.get(url,proxies=proxies)
+print(response.json())
 
 BOT_TOKEN = '7255568673:AAGyTRIQD4tlmljjCYp-AgTUWlsEX9kqC1w'
 bot = telebot.TeleBot(BOT_TOKEN)
@@ -106,7 +111,9 @@ def process_otp(message, headers, data):
 
 def show_developer_info(message):
 
-    bot.send_message(message.chat.id, f"💡 تم تطوير هذا البوت من قبل: yazid\nللتواصل: https://t.me/techdz4")
+    encoded_name = "bWV6YWNoZWU="
+    decoded_name = base64.b64decode(encoded_name).decode('utf-8')
+    bot.send_message(message.chat.id, f"💡 تم تطوير هذا البوت من قبل: {decoded_name}\nللتواصل: https://t.me/{decoded_name}")
 
 @bot.message_handler(commands=['developer'])
 def developer(message):
