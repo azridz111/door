@@ -1,4 +1,10 @@
 import requests
+import telebot
+import base64
+
+
+BOT_TOKEN = '7255568673:AAGyTRIQD4tlmljjCYp-AgTUWlsEX9kqC1w'
+bot = telebot.TeleBot(BOT_TOKEN)
 
 user_data_dict = {}
 
@@ -45,8 +51,15 @@ def send_internet(access_token):
 
     print('تم إرسال الإنترنت بنجاح!')
 
-def main():
-    num = input("أدخل رقم الهاتف (يجب أن يكون رقم يوز): ")
+@bot.message_handler(commands=['start'])
+def start(message):
+    bot.send_message(message.chat.id, "أهلاً! أدخل رقم الهاتف (يجب أن يكون رقم يوز):")
+    bot.register_next_step_handler(message, process_phone_number)
+
+def process_phone_number(message):
+    num = message.text
+    user_data_dict[message.chat.id] = {'phone_number': num}
+    
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Host': 'ibiza.ooredoo.dz',
@@ -62,24 +75,44 @@ def main():
     response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data)
 
     if 'ROOGY' in response.text:
-        otp = input('تم إرسال رمز. أدخل الرمز: ')
-        data['otp'] = otp
-        response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data)
-
-        if response.status_code == 200:
-            access_token = response.json().get('access_token')
-            if access_token:
-                print('تم التحقق بنجاح. يتم الآن إرسال الإنترنت.')
-                send_internet(access_token)
-                balance = check_balance(access_token)
-                if balance is not None:
-                    print(f"حجم الأنترنت: {balance}")
-                else:
-                    print("فشل في استرداد الرصيد.")
-        else:
-            print('فشل في التحقق من الرمز.')
+        bot.send_message(message.chat.id, 'تم إرسال رمز. أدخل الرمز:')
+        bot.register_next_step_handler(message, process_otp, headers, data)
     else:
-        print('فشل في إرسال رمز.')
+        bot.send_message(message.chat.id, 'فشل في إرسال رمز.')
 
-if __name__ == '__main__':
-    main()
+def process_otp(message, headers, data):
+    otp = message.text
+    data['otp'] = otp
+    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data)
+
+    if response.status_code == 200:
+        access_token = response.json().get('access_token')
+        if access_token:
+            bot.send_message(message.chat.id, '✅ تم التحقق بنجاح. يتم الآن إرسال الإنترنت...')
+            send_internet(access_token)
+            balance = check_balance(access_token)
+            if balance is not None:
+                bot.send_message(message.chat.id, f"📊 حجم الأنترنت المتبقي: {balance}")
+            else:
+                bot.send_message(message.chat.id, "❌ فشل في استرداد الرصيد.")
+            
+            
+            bot.send_message(message.chat.id, "🎉 تم التفعيل بنجاح!")
+
+         
+            show_developer_info(message)
+    else:
+        bot.send_message(message.chat.id, '❌ فشل في التحقق من الرمز.')
+
+def show_developer_info(message):
+
+    encoded_name = "bWV6YWNoZWU="
+    decoded_name = base64.b64decode(encoded_name).decode('utf-8')
+    bot.send_message(message.chat.id, f"💡 تم تطوير هذا البوت من قبل: {decoded_name}\nللتواصل: https://t.me/{decoded_name}")
+
+@bot.message_handler(commands=['developer'])
+def developer(message):
+    show_developer_info(message)
+
+if __name__ == "__main__":
+    bot.polling(none_stop=True)
