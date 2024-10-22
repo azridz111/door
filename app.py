@@ -2,11 +2,16 @@ import requests
 import telebot
 import base64
 
-
 BOT_TOKEN = '7255568673:AAGyTRIQD4tlmljjCYp-AgTUWlsEX9kqC1w'
 bot = telebot.TeleBot(BOT_TOKEN)
 
 user_data_dict = {}
+
+# إعدادات البروكسي
+proxies = {
+    'http': 'http://41.111.243.134:80',
+    'https': 'http://41.111.243.134:80'
+}
 
 def check_balance(access_token):
     url = "https://ibiza.ooredoo.dz/api/v1/mobile-bff/users/balance"
@@ -19,7 +24,7 @@ def check_balance(access_token):
         'request-id': "995fd8a7-853c-481d-b9c6-0a24295df76a",
         'flavour-type': "gms"
     }
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, proxies=proxies)
     
     if response.status_code == 200:
         response_json = response.json()
@@ -43,7 +48,7 @@ def send_internet(access_token):
     payload = {"mgmValue": "ABC"}
 
     for _ in range(6):
-        response = requests.post(url, headers=headers, json=payload)
+        response = requests.post(url, headers=headers, json=payload, proxies=proxies)
         if response.status_code == 200:
             print("Request succeeded")
         else:
@@ -72,7 +77,7 @@ def process_phone_number(message):
         'mobile-number': num,
         'language': 'AR',
     }
-    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data)
+    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data, proxies=proxies)
 
     if 'ROOGY' in response.text:
         bot.send_message(message.chat.id, 'تم إرسال رمز. أدخل الرمز:')
@@ -83,7 +88,7 @@ def process_phone_number(message):
 def process_otp(message, headers, data):
     otp = message.text
     data['otp'] = otp
-    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data)
+    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data, proxies=proxies)
 
     if response.status_code == 200:
         access_token = response.json().get('access_token')
@@ -96,16 +101,13 @@ def process_otp(message, headers, data):
             else:
                 bot.send_message(message.chat.id, "❌ فشل في استرداد الرصيد.")
             
-            
             bot.send_message(message.chat.id, "🎉 تم التفعيل بنجاح!")
 
-         
             show_developer_info(message)
     else:
         bot.send_message(message.chat.id, '❌ فشل في التحقق من الرمز.')
 
 def show_developer_info(message):
-
     encoded_name = "bWV6YWNoZWU="
     decoded_name = base64.b64decode(encoded_name).decode('utf-8')
     bot.send_message(message.chat.id, f"💡 تم تطوير هذا البوت من قبل: {decoded_name}\nللتواصل: https://t.me/{decoded_name}")
