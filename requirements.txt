@@ -12,4 +12,4 @@ requests==2.32.3
 rich==13.7.0
 urllib3==2.1.0
 telebot==0.0.5
-jsonlib==1.6.1
+jsons==1.6.3
