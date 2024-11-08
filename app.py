@@ -1,120 +1,73 @@
-import requests
 import telebot
-import base64
-
-BOT_TOKEN = '7255568673:AAGyTRIQD4tlmljjCYp-AgTUWlsEX9kqC1w'
-bot = telebot.TeleBot(BOT_TOKEN)
-
-user_data_dict = {}
-
-# إعدادات البروكسي
-proxies = {
-    'http': 'http://41.111.243.134:80',
-    'https': 'http://41.111.243.134:80'
+import requests
+import json
+token = "7152506452:AAE7krKXAq5Zm_k3F9P62sYpSfeqMoinrK8"
+bot = telebot.TeleBot(token)
+@bot.message_handler(commands=['start'])
+def send_welcome(message):
+    bot.reply_to(message, "اهلا بك عزيزي ارسل النص بلغه الانكليزيه لتحويله لصوره")
+@bot.message_handler(func=lambda message: True)
+def generate_image(message):
+	user_input = message.text
+	headers = {
+    'authority': 'www.blackbox.ai',
+    'accept': '*/*',
+    'accept-language': 'ar-EG,ar;q=0.9,en-US;q=0.8,en;q=0.7',
+    'content-type': 'application/json',
+     'cookie': 'sessionId=ae730a29-981e-4dcb-9cd8-b72415e86d68; __Host-authjs.csrf-token=317b4272e5639c2a132bc8bdc7e20706302a75cb53c90c18b3ee2561e5de43ec%7Cdd079965257f03619ec75462ef6afa9041acb16d651d151931d05b61aaa49640; __Secure-authjs.callback-url=https%3A%2F%2Fwww.blackbox.ai; intercom-id-jlmqxicb=a3660d6f-a754-48fb-be30-2ffe26e35e6b; intercom-session-jlmqxicb=; intercom-device-id-jlmqxicb=04ca5dee-12de-44b2-9066-c109b7d891eb',
+    'origin': 'https://www.blackbox.ai',
+    'referer': 'https://www.blackbox.ai/agent/ImageGenerationLV45LJp',
+    'sec-ch-ua': '"Not-A.Brand";v="99", "Chromium";v="124"',
+    'sec-ch-ua-mobile': '?1',
+    'sec-ch-ua-platform': '"Android"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+    'user-agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
 }
 
-def check_balance(access_token):
-    url = "https://ibiza.ooredoo.dz/api/v1/mobile-bff/users/balance"
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'User-Agent': "okhttp/4.9.3",
-        'Connection': "Keep-Alive",
-        'Accept-Encoding': "gzip",
-        'language': "AR",
-        'request-id': "995fd8a7-853c-481d-b9c6-0a24295df76a",
-        'flavour-type': "gms"
-    }
-    response = requests.get(url, headers=headers, proxies=proxies)
-    
-    if response.status_code == 200:
-        response_json = response.json()
-        accounts = response_json.get('accounts', [])
-        
-        for account in accounts:
-            if account.get('label') == 'رصيد التكفل المهدى':
-                return account.get('value', None)
-    
-    return None
 
-def send_internet(access_token):
-    url = 'https://ibiza.ooredoo.dz/api/v1/mobile-bff/users/mgm/info/apply'
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'language': 'AR',
-        'request-id': 'ef69f4c6-2ead-4b93-95df-106ef37feefd',
-        'flavour-type': 'gms',
-        'Content-Type': 'application/json'
-    }
-    payload = {"mgmValue": "ABC"}
+	json_data = {
+    'messages': [
+        {
+            'id': 'BInlT_BidR17C9Q9LuxPP',
+            'content': user_input,
+            'role': 'user',
+        },
+    ],
+    'id': 'BInlT_BidR17C9Q9LuxPP',
+    'previewToken': None,
+    'userId': None,
+    'codeModelMode': True,
+    'agentMode': {
+        'mode': True,
+        'id': 'ImageGenerationLV45LJp',
+        'name': 'Image Generation',
+    },
+    'trendingAgentMode': {},
+    'isMicMode': False,
+    'maxTokens': 1024,
+    'playgroundTopP': None,
+    'playgroundTemperature': None,
+    'isChromeExt': False,
+    'githubToken': None,
+    'clickedAnswer2': False,
+    'clickedAnswer3': False,
+    'clickedForceWebSearch': False,
+    'visitFromDelta': False,
+    'mobileClient': False,
+    'userSelectedModel': None,
+    'validated': '00f37b34-a166-4efb-bce5-1312d87f2f94',
+}
 
-    for _ in range(6):
-        response = requests.post(url, headers=headers, json=payload, proxies=proxies)
-        if response.status_code == 200:
-            print("Request succeeded")
-        else:
-            print("Request failed with status code:", response.status_code)
 
-    print('تم إرسال الإنترنت بنجاح!')
-
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, "أهلاً! أدخل رقم الهاتف (يجب أن يكون رقم يوز):")
-    bot.register_next_step_handler(message, process_phone_number)
-
-def process_phone_number(message):
-    num = message.text
-    user_data_dict[message.chat.id] = {'phone_number': num}
-    
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Host': 'ibiza.ooredoo.dz',
-        'Connection': 'Keep-Alive',
-        'User-Agent': 'okhttp/4.9.3',
-    }
-    data = {
-        'client_id': 'ibiza-app',
-        'grant_type': 'password',
-        'mobile-number': num,
-        'language': 'AR',
-    }
-    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data, proxies=proxies)
-
-    if 'ROOGY' in response.text:
-        bot.send_message(message.chat.id, 'تم إرسال رمز. أدخل الرمز:')
-        bot.register_next_step_handler(message, process_otp, headers, data)
-    else:
-        bot.send_message(message.chat.id, 'فشل في إرسال رمز.')
-
-def process_otp(message, headers, data):
-    otp = message.text
-    data['otp'] = otp
-    response = requests.post('https://ibiza.ooredoo.dz/auth/realms/ibiza/protocol/openid-connect/token', headers=headers, data=data, proxies=proxies)
-
-    if response.status_code == 200:
-        access_token = response.json().get('access_token')
-        if access_token:
-            bot.send_message(message.chat.id, '✅ تم التحقق بنجاح. يتم الآن إرسال الإنترنت...')
-            send_internet(access_token)
-            balance = check_balance(access_token)
-            if balance is not None:
-                bot.send_message(message.chat.id, f"📊 حجم الأنترنت المتبقي: {balance}")
-            else:
-                bot.send_message(message.chat.id, "❌ فشل في استرداد الرصيد.")
-            
-            bot.send_message(message.chat.id, "🎉 تم التفعيل بنجاح!")
-
-            show_developer_info(message)
-    else:
-        bot.send_message(message.chat.id, '❌ فشل في التحقق من الرمز.')
-
-def show_developer_info(message):
-    encoded_name = "bWV6YWNoZWU="
-    decoded_name = base64.b64decode(encoded_name).decode('utf-8')
-    bot.send_message(message.chat.id, f"💡 تم تطوير هذا البوت من قبل: {decoded_name}\nللتواصل: https://t.me/{decoded_name}")
-
-@bot.message_handler(commands=['developer'])
-def developer(message):
-    show_developer_info(message)
-
-if __name__ == "__main__":
-    bot.polling(none_stop=True)
+	rr = requests.post('https://www.blackbox.ai/api/chat', headers=headers, json=json_data).text
+	print(rr)
+	parts = rr.split('(')
+	if len(parts) > 1:
+		link = parts[1].split(')')[0]
+		bot.send_photo(message.chat.id,link)
+	else:
+		print("لا يوجد رابط في النص")
+		
+bot.polling()
