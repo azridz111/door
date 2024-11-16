@@ -9,9 +9,6 @@ app = Flask(__name__)
 token = "7829782312:AAGN3FUf05wUJJtHd5NV3BaJ3bo0S-Gxslc"
 bot = telebot.TeleBot(token)
 
-@app.route('/')
-def index():
-    return "The bot is running!"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
