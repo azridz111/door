@@ -75,4 +75,4 @@ def generate_image(message):
 		print("لا يوجد رابط في النص")
 		
 bot.polling()
-@app.route('/')
+
