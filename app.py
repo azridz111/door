@@ -2,8 +2,12 @@ import telebot
 import requests
 import json
 import os
+from flask import Flask
+
+app = Flask(__name__)
 
 @app.route('/')
+
 token = "7829782312:AAGN3FUf05wUJJtHd5NV3BaJ3bo0S-Gxslc"
 bot = telebot.TeleBot(token)
 @bot.message_handler(commands=['start'])
