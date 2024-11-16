@@ -3,8 +3,6 @@ import requests
 import json
 import os
 
-PORT = int(os.environ.get("PORT", 8000))
-app.run(host="0.0.0.0", port=PORT)
 
 token = "7829782312:AAGN3FUf05wUJJtHd5NV3BaJ3bo0S-Gxslc"
 bot = telebot.TeleBot(token)
